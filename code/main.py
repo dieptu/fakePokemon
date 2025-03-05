@@ -1,47 +1,69 @@
 from settings import *
 from pytmx.util_pygame import load_pygame #install pytmx : pip install pytmx
 import os
+from os.path import join
 import pytmx
 
 from sprites import Sprite
 from entities import Player
+from groups import AllSprites
 
 class Game:
     def __init__(self):
         pygame.init()
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Fake Pokemon")
+        self.clock = pygame.time.Clock()
 
         #groups
-        self.all_sprites = pygame.sprite.Group()
+        #self.all_sprites = pygame.sprite.Group()
+        self.all_sprites = AllSprites()
 
         self.import_asset()
-        self.setup(self.tmx_maps['world'], 'house')
+        self.setup(self.tmx_maps['hospital'], 'world')
 
     def import_asset(self):
         #access the map of the world for the game
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of main.py
-        TMX_PATH = os.path.join(BASE_DIR, "../data/maps/world.tmx")  # Construct absolute path
+        TMX_PATH_WORLD = os.path.join(BASE_DIR, "../data/maps/world.tmx")  # Construct absolute path
+        TMX_PATH_HOSPITAL = os.path.join(BASE_DIR, "../data/maps/hospital.tmx")
         #join() parameter will create a path like ../data/maps/world.tmx
         self.tmx_maps = {	
-            'world': pytmx.util_pygame.load_pygame(TMX_PATH)  # Use absolute path
-            # 'world': load_pygame('MyGames/pokemon/data/maps/world.tmx')
-            }
+            'world': pytmx.util_pygame.load_pygame(TMX_PATH_WORLD),  # Use absolute path
+            # 'world': load_pygame('MyGames/pokemon/data/maps/world.tmx'), #Not working with this one or join()
+            'hospital': pytmx.util_pygame.load_pygame(TMX_PATH_HOSPITAL)	
+        }
         # print(self.tmx_maps)
 
     def setup(self, tmx_map, player_start_pos):
-        for x, y, surf in tmx_map.get_layer_by_name("Terrain").tiles():
-            #x *tile_size = actual size of each tile, because each tile is placed colum, row with the size of 64 in settings
-            #print(x * TILE_SIZE,y * TILE_SIZE ,surf)
-            Sprite((x * TILE_SIZE,y * TILE_SIZE ),surf, self.all_sprites)
+        #background to frontground
+        #terrain and terrain top
+        for layer in ["Terrain", "Terrain Top"]:
+            for x, y, surf in tmx_map.get_layer_by_name(layer).tiles():
+                #x *tile_size = actual size of each tile, because each tile is placed colum, row with the size of 64 in settings
+                #print(x * TILE_SIZE,y * TILE_SIZE ,surf)
+                Sprite((x * TILE_SIZE,y * TILE_SIZE ),surf, self.all_sprites)
 
+        # #terrain top
+        # for x, y, surf in tmx_map.get_layer_by_name("Terrain Top").tiles():
+        #     Sprite((x * TILE_SIZE,y * TILE_SIZE ),surf, self.all_sprites)
+
+        #Entities
         for obj in tmx_map.get_layer_by_name("Entities"):
             if obj.name == "Player" and obj.properties['pos'] == player_start_pos:
-                print(obj.x, obj.y)
+                #print(obj.x, obj.y)
+                #after getting the position of the player, we could start create a player
+                self.player = Player((obj.x, obj.y), self.all_sprites)
+
+        #Objects
+        for obj in tmx_map.get_layer_by_name("Objects"):
+            Sprite((obj.x, obj.y), obj.image, self.all_sprites)
+
 
     def run(self):
         while True:
             #event loop
+            dt = self.clock.tick() / 1000 #convert to millisecond
             for event in pygame.event.get():
                 #check the event type if quit, close the game
                 if event.type == pygame.QUIT:
@@ -51,7 +73,11 @@ class Game:
             #game logic
             #as long as the loop is running, the display will get update
             #run sprites before update
-            self.all_sprites.draw(self.display_surface)
+            self.all_sprites.update(dt)
+            self.display_surface.fill("black") #fill up the part of the map that is outsisde
+            self.all_sprites.draw(self.player.rect.center)
+            # print(self.clock.get_fps())
+            # print(dt)
             pygame.display.update()     
 
 if __name__ == '__main__':
