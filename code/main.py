@@ -4,6 +4,7 @@ import os
 import pytmx
 
 from sprites import Sprite
+from entities import Player
 
 class Game:
     def __init__(self):
@@ -33,6 +34,10 @@ class Game:
             #x *tile_size = actual size of each tile, because each tile is placed colum, row with the size of 64 in settings
             #print(x * TILE_SIZE,y * TILE_SIZE ,surf)
             Sprite((x * TILE_SIZE,y * TILE_SIZE ),surf, self.all_sprites)
+
+        for obj in tmx_map.get_layer_by_name("Entities"):
+            if obj.name == "Player" and obj.properties['pos'] == player_start_pos:
+                print(obj.x, obj.y)
 
     def run(self):
         while True:
