@@ -75,6 +75,12 @@ class Game:
                 for y in range(int(obj.y), int(obj.y + obj.height), TILE_SIZE):
                     AnimatedSprite((x,y), self.overworld_frame['water'], self.all_sprites)
 
+        #Coast
+        for obj in tmx_map.get_layer_by_name("Coast"):
+            terrain = obj.properties["terrain"]
+            side = obj.properties['side']
+            AnimatedSprite((obj.x, obj.y), self.overworld_frame['coast'][terrain][side], self.all_sprites)
+
             
 
 
@@ -102,3 +108,6 @@ if __name__ == '__main__':
     #check if the file is main, if yes, create game and run it
     game = Game()
     game.run()
+
+
+#1:23:00
