@@ -3,11 +3,17 @@ from pytmx.util_pygame import load_pygame #install pytmx : pip install pytmx
 import os
 import pytmx
 
+from sprites import Sprite
+
 class Game:
     def __init__(self):
         pygame.init()
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Fake Pokemon")
+
+        #groups
+        self.all_sprites = pygame.sprite.Group()
+
         self.import_asset()
         self.setup(self.tmx_maps['world'], 'house')
 
@@ -24,7 +30,9 @@ class Game:
 
     def setup(self, tmx_map, player_start_pos):
         for x, y, surf in tmx_map.get_layer_by_name("Terrain").tiles():
-            print(x,y,surf)
+            #x *tile_size = actual size of each tile, because each tile is placed colum, row with the size of 64 in settings
+            #print(x * TILE_SIZE,y * TILE_SIZE ,surf)
+            Sprite((x * TILE_SIZE,y * TILE_SIZE ),surf, self.all_sprites)
 
     def run(self):
         while True:
@@ -37,6 +45,8 @@ class Game:
 
             #game logic
             #as long as the loop is running, the display will get update
+            #run sprites before update
+            self.all_sprites.draw(self.display_surface)
             pygame.display.update()     
 
 if __name__ == '__main__':
