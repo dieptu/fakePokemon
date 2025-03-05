@@ -4,9 +4,11 @@ import os
 from os.path import join
 import pytmx
 
-from sprites import Sprite
+from sprites import Sprite, AnimatedSprite
 from entities import Player
 from groups import AllSprites
+
+from support import *
 
 class Game:
     def __init__(self):
@@ -20,7 +22,7 @@ class Game:
         self.all_sprites = AllSprites()
 
         self.import_asset()
-        self.setup(self.tmx_maps['hospital'], 'world')
+        self.setup(self.tmx_maps['world'], 'house')
 
     def import_asset(self):
         #access the map of the world for the game
@@ -33,7 +35,12 @@ class Game:
             # 'world': load_pygame('MyGames/pokemon/data/maps/world.tmx'), #Not working with this one or join()
             'hospital': pytmx.util_pygame.load_pygame(TMX_PATH_HOSPITAL)	
         }
-        # print(self.tmx_maps)
+
+        WATER_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/water')
+        self.overworld_frame = {
+            'water': import_folder(WATER_PATH)
+        }
+        
 
     def setup(self, tmx_map, player_start_pos):
         #background to frontground
@@ -58,6 +65,15 @@ class Game:
         #Objects
         for obj in tmx_map.get_layer_by_name("Objects"):
             Sprite((obj.x, obj.y), obj.image, self.all_sprites)
+
+        #Water
+        for obj in tmx_map.get_layer_by_name("Water"):
+            #print(obj.x, obj.y)
+            for x in range(int(obj.x), int(obj.x + obj.width), TILE_SIZE):
+                for y in range(int(obj.y), int(obj.y + obj.height), TILE_SIZE):
+                    AnimatedSprite((x,y), self.overworld_frame['water'], self.all_sprites)
+
+            
 
 
     def run(self):
