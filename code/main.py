@@ -37,10 +37,12 @@ class Game:
         }
 
         WATER_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/water')
+        COAST_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/coast')
         self.overworld_frame = {
-            'water': import_folder(WATER_PATH)
+            'water': import_folder(WATER_PATH),
+            'coast': coast_importer(COAST_PATH)
         }
-        
+        print(self.overworld_frame['coast'])
 
     def setup(self, tmx_map, player_start_pos):
         #background to frontground
