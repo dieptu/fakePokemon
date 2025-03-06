@@ -5,7 +5,7 @@ from os.path import join
 import pytmx
 
 from sprites import Sprite, AnimatedSprite
-from entities import Player
+from entities import Player, Character
 from groups import AllSprites
 
 from support import *
@@ -39,6 +39,7 @@ class Game:
         WATER_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/water')
         COAST_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/coast')
         CHARACTER_PATH = os.path.join(BASE_DIR, '../graphics/characters')
+        
         self.overworld_frame = {
             'water': import_folder(WATER_PATH),
             'coast': coast_importer(COAST_PATH),
@@ -61,13 +62,21 @@ class Game:
 
         #Entities
         for obj in tmx_map.get_layer_by_name("Entities"):
-            if obj.name == "Player" and obj.properties['pos'] == player_start_pos:
-                #print(obj.x, obj.y)
-                #after getting the position of the player, we could start create a player
-                self.player = Player(
-                    pos = (obj.x, obj.y), 
-                    frames = self.overworld_frame["characters"]['player'], 
-                    groups = self.all_sprites)
+            if obj.name == 'Player':
+                if obj.properties['pos'] == player_start_pos:
+                    self.player = Player(
+						pos = (obj.x, obj.y), 
+						frames = self.overworld_frame['characters']['player'], 
+						groups = self.all_sprites,
+						facing_direction = obj.properties['direction'])
+            else:
+                Character(
+					pos = (obj.x, obj.y), 
+					frames = self.overworld_frame['characters'][obj.properties['graphic']], 
+					groups = self.all_sprites,
+					facing_direction = obj.properties['direction']
+                    )
+
 
         #Objects
         for obj in tmx_map.get_layer_by_name("Objects"):

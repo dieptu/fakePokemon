@@ -1,19 +1,21 @@
 from settings import *
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self,pos, frames, groups):
+    def __init__(self,pos, frames, groups, facing_direction):
         super().__init__(groups)
 
         #graphics - animation
         self.frame_index , self.frames = 0, frames
-        self.facing_direction = 'down'
+        self.facing_direction = facing_direction
 
-        #sprite setup
-        self.image = self.frames['down'][self.frame_index]
-        self.rect = self.image.get_frect(center = pos)
         #movement
         self.direction = vector()
         self.speed = 250
+        
+        #sprite setup
+        self.image = self.frames[self.get_state()][self.frame_index]
+        self.rect = self.image.get_frect(center = pos)
+        
 
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED * dt
@@ -22,18 +24,22 @@ class Entity(pygame.sprite.Sprite):
     # def update(self, dt):
     #     self.animate(dt)
     def get_state(self):
-        #logic
         moving = bool(self.direction)
         if moving:
             if self.direction.x != 0:
                 self.facing_direction = 'right' if self.direction.x > 0 else 'left'
             if self.direction.y != 0:
                 self.facing_direction = 'down' if self.direction.y > 0 else 'up'
-        return f"{self.facing_direction}{'' if moving else '_idle'}"
+        return f'{self.facing_direction}{'' if moving else '_idle'}'
+
+class Character(Entity):
+    def __init__(self, pos, frames, groups, facing_direction):
+        super().__init__(pos, frames, groups, facing_direction)
+
 
 class Player(Entity):
-    def __init__(self, pos,frames, groups):
-        super().__init__(pos, frames, groups)
+    def __init__(self, pos,frames, groups, facing_direction):
+        super().__init__(pos, frames, groups, facing_direction)
         # self.image = pygame.Surface((100,100)) #class Entity takes care of this part
         # self.rect = self.image.get_frect(center = pos)
         #self.direction = vector()
