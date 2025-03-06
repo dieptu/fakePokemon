@@ -38,9 +38,11 @@ class Game:
 
         WATER_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/water')
         COAST_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/coast')
+        CHARACTER_PATH = os.path.join(BASE_DIR, '../graphics/characters')
         self.overworld_frame = {
             'water': import_folder(WATER_PATH),
-            'coast': coast_importer(COAST_PATH)
+            'coast': coast_importer(COAST_PATH),
+            'characters': all_character_importer(CHARACTER_PATH)
         }
         print(self.overworld_frame['coast'])
 
@@ -62,7 +64,10 @@ class Game:
             if obj.name == "Player" and obj.properties['pos'] == player_start_pos:
                 #print(obj.x, obj.y)
                 #after getting the position of the player, we could start create a player
-                self.player = Player((obj.x, obj.y), self.all_sprites)
+                self.player = Player(
+                    pos = (obj.x, obj.y), 
+                    frames = self.overworld_frame["characters"]['player'], 
+                    groups = self.all_sprites)
 
         #Objects
         for obj in tmx_map.get_layer_by_name("Objects"):
@@ -80,6 +85,8 @@ class Game:
             terrain = obj.properties["terrain"]
             side = obj.properties['side']
             AnimatedSprite((obj.x, obj.y), self.overworld_frame['coast'][terrain][side], self.all_sprites)
+
+        #Characters
 
             
 

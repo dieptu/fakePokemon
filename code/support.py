@@ -71,6 +71,7 @@ def all_character_importer(*path):
 		for image in image_names:
 			image_name = image.split('.')[0]
 			char_dict[image_name] = character_importer(*path,image_name)
+			#print("\n\ncharacter dictionary: ",char_dict)
 	return char_dict
 
 def monster_importer(*path):
