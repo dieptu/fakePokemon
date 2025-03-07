@@ -4,7 +4,7 @@ import os
 from os.path import join
 import pytmx
 
-from sprites import Sprite, AnimatedSprite
+from sprites import Sprite, AnimatedSprite, MonsterPatchSprite, BorderSprite, CollidableSprite
 from entities import Player, Character
 from groups import AllSprites
 
@@ -20,6 +20,8 @@ class Game:
         #groups
         #self.all_sprites = pygame.sprite.Group()
         self.all_sprites = AllSprites()
+        self.collision_sprites = pygame.sprite.Group()
+        self.characters_sprites = pygame.sprite.Group()
 
         self.import_asset()
         self.setup(self.tmx_maps['world'], 'house')
@@ -54,11 +56,24 @@ class Game:
             for x, y, surf in tmx_map.get_layer_by_name(layer).tiles():
                 #x *tile_size = actual size of each tile, because each tile is placed colum, row with the size of 64 in settings
                 #print(x * TILE_SIZE,y * TILE_SIZE ,surf)
-                Sprite((x * TILE_SIZE,y * TILE_SIZE ),surf, self.all_sprites)
+                Sprite((x * TILE_SIZE,y * TILE_SIZE ),surf, self.all_sprites, WORLD_LAYERS['bg'])
 
         # #terrain top
         # for x, y, surf in tmx_map.get_layer_by_name("Terrain Top").tiles():
         #     Sprite((x * TILE_SIZE,y * TILE_SIZE ),surf, self.all_sprites)
+        
+        #Water
+        for obj in tmx_map.get_layer_by_name("Water"):
+            #print(obj.x, obj.y)
+            for x in range(int(obj.x), int(obj.x + obj.width), TILE_SIZE):
+                for y in range(int(obj.y), int(obj.y + obj.height), TILE_SIZE):
+                    AnimatedSprite((x,y), self.overworld_frame['water'], self.all_sprites, WORLD_LAYERS['water'])
+
+        #Coast
+        for obj in tmx_map.get_layer_by_name("Coast"):
+            terrain = obj.properties["terrain"]
+            side = obj.properties['side']
+            AnimatedSprite((obj.x, obj.y), self.overworld_frame['coast'][terrain][side], self.all_sprites,WORLD_LAYERS['bg'])
 
         #Entities
         for obj in tmx_map.get_layer_by_name("Entities"):
@@ -68,37 +83,43 @@ class Game:
 						pos = (obj.x, obj.y), 
 						frames = self.overworld_frame['characters']['player'], 
 						groups = self.all_sprites,
-						facing_direction = obj.properties['direction'])
+						facing_direction = obj.properties['direction'],
+                        collision_sprites = self.collision_sprites
+                        )
             else:
                 Character(
 					pos = (obj.x, obj.y), 
 					frames = self.overworld_frame['characters'][obj.properties['graphic']], 
-					groups = self.all_sprites,
+					groups = (self.all_sprites, self.collision_sprites, self.characters_sprites),
 					facing_direction = obj.properties['direction']
                     )
 
+        #Grass patches
+        for obj in tmx_map.get_layer_by_name("Monsters"):
+            MonsterPatchSprite((obj.x, obj.y), obj.image, self.all_sprites, obj.properties['biome'])
 
         #Objects
         for obj in tmx_map.get_layer_by_name("Objects"):
-            Sprite((obj.x, obj.y), obj.image, self.all_sprites)
+            if (obj.name == 'top'):
+                Sprite((obj.x, obj.y), obj.image, self.all_sprites, WORLD_LAYERS['top'])
+            else:
+                CollidableSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
 
-        #Water
-        for obj in tmx_map.get_layer_by_name("Water"):
-            #print(obj.x, obj.y)
-            for x in range(int(obj.x), int(obj.x + obj.width), TILE_SIZE):
-                for y in range(int(obj.y), int(obj.y + obj.height), TILE_SIZE):
-                    AnimatedSprite((x,y), self.overworld_frame['water'], self.all_sprites)
+        #collision objects
+        for obj in tmx_map.get_layer_by_name("Collisions"):
+            BorderSprite((obj.x, obj.y), pygame.Surface((obj.width, obj.height)), self.collision_sprites)
 
-        #Coast
-        for obj in tmx_map.get_layer_by_name("Coast"):
-            terrain = obj.properties["terrain"]
-            side = obj.properties['side']
-            AnimatedSprite((obj.x, obj.y), self.overworld_frame['coast'][terrain][side], self.all_sprites)
-
-        #Characters
-
-            
-
+    def input(self):
+        keys = pygame.key.get_just_pressed()
+        if keys[pygame.K_SPACE]:
+            for character in self.characters_sprites:
+                if check_connection(100, self.player, character):
+                    #block player input
+                    self.player.block()
+                    #entities face each other
+                    character.change_facing_direction(self.player.rect.center)
+                    #create dialog
+                    print("dialog")
 
     def run(self):
         while True:
@@ -112,6 +133,7 @@ class Game:
 
             #game logic
             #as long as the loop is running, the display will get update
+            self.input()
             #run sprites before update
             self.all_sprites.update(dt)
             self.display_surface.fill("black") #fill up the part of the map that is outsisde
@@ -126,4 +148,3 @@ if __name__ == '__main__':
     game.run()
 
 
-#1:23:00
