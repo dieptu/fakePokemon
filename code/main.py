@@ -99,7 +99,11 @@ class Game:
 					frames = self.overworld_frame['characters'][obj.properties['graphic']], 
 					groups = (self.all_sprites, self.collision_sprites, self.characters_sprites),
 					facing_direction = obj.properties['direction'],
-                    character_data= TRAINER_DATA[obj.properties['character_id']]
+                    character_data= TRAINER_DATA[obj.properties['character_id']],
+                    player = self.player,
+                    create_dialog=self.create_dialog,
+                    collision_sprites= self.collision_sprites,
+                    radius = obj.properties['radius']
                     )
 
         #Grass patches
@@ -130,10 +134,16 @@ class Game:
                         #create dialog
                         self.create_dialog(character)
                         #print("dialog")
+                        character.can_rotate = False
     
     def create_dialog(self, character):
         if not self.dialog_tree:
-            self.dialog_tree = DialogTree(character, self.player, self.all_sprites, self.fonts['dialog'])
+            self.dialog_tree = DialogTree(character, self.player, self.all_sprites, self.fonts['dialog'], self.end_dialog)
+
+    def end_dialog(self, character):
+        self.dialog_tree = None
+        self.player.unblock()
+
 
     def run(self):
         while True:
@@ -151,7 +161,7 @@ class Game:
             #run sprites before update
             self.all_sprites.update(dt)
             self.display_surface.fill("black") #fill up the part of the map that is outsisde
-            self.all_sprites.draw(self.player.rect.center)
+            self.all_sprites.draw(self.player)
             # print(self.clock.get_fps())
             # print(dt)
 
