@@ -94,8 +94,8 @@ def attack_importer(*path):
 			attack_dict[image_name] = list(import_tilemap(4,1,folder_path,image_name).values())
 	return attack_dict
 
-def coast_importer(*path):
-	frame_dict = import_tilemap(24,12,*path)
+def coast_importer(cols, rows, *path):
+	frame_dict = import_tilemap(cols, rows, *path)
 	new_dict = {}
 	terrains = ['grass', 'grass_i', 'sand_i', 'sand', 'rock', 'rock_i', 'ice', 'ice_i']
 	sides = {
