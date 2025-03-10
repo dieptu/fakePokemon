@@ -1,4 +1,5 @@
 from settings import *
+from game_data import *
 from pytmx.util_pygame import load_pygame #install pytmx : pip install pytmx
 import os
 from os.path import join
@@ -7,6 +8,7 @@ import pytmx
 from sprites import Sprite, AnimatedSprite, MonsterPatchSprite, BorderSprite, CollidableSprite
 from entities import Player, Character
 from groups import AllSprites
+from dialog import DialogTree
 
 from support import *
 
@@ -25,12 +27,18 @@ class Game:
 
         self.import_asset()
         self.setup(self.tmx_maps['world'], 'house')
+        self.dialog_tree = None
 
     def import_asset(self):
         #access the map of the world for the game
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of main.py
         TMX_PATH_WORLD = os.path.join(BASE_DIR, "../data/maps/world.tmx")  # Construct absolute path
         TMX_PATH_HOSPITAL = os.path.join(BASE_DIR, "../data/maps/hospital.tmx")
+        WATER_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/water')
+        COAST_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/coast')
+        CHARACTER_PATH = os.path.join(BASE_DIR, '../graphics/characters')
+        DIALOG_PATH = os.path.join(BASE_DIR, '../graphics/fonts/PixeloidSans.ttf')
+
         #join() parameter will create a path like ../data/maps/world.tmx
         self.tmx_maps = {	
             'world': pytmx.util_pygame.load_pygame(TMX_PATH_WORLD),  # Use absolute path
@@ -38,16 +46,15 @@ class Game:
             'hospital': pytmx.util_pygame.load_pygame(TMX_PATH_HOSPITAL)	
         }
 
-        WATER_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/water')
-        COAST_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/coast')
-        CHARACTER_PATH = os.path.join(BASE_DIR, '../graphics/characters')
-        
         self.overworld_frame = {
             'water': import_folder(WATER_PATH),
             'coast': coast_importer(COAST_PATH),
             'characters': all_character_importer(CHARACTER_PATH)
         }
-        print(self.overworld_frame['coast'])
+        #print(self.overworld_frame['coast'])
+        self.fonts = {
+            "dialog": pygame.font.Font(DIALOG_PATH, 30)
+        }
 
     def setup(self, tmx_map, player_start_pos):
         #background to frontground
@@ -91,7 +98,8 @@ class Game:
 					pos = (obj.x, obj.y), 
 					frames = self.overworld_frame['characters'][obj.properties['graphic']], 
 					groups = (self.all_sprites, self.collision_sprites, self.characters_sprites),
-					facing_direction = obj.properties['direction']
+					facing_direction = obj.properties['direction'],
+                    character_data= TRAINER_DATA[obj.properties['character_id']]
                     )
 
         #Grass patches
@@ -110,16 +118,22 @@ class Game:
             BorderSprite((obj.x, obj.y), pygame.Surface((obj.width, obj.height)), self.collision_sprites)
 
     def input(self):
-        keys = pygame.key.get_just_pressed()
-        if keys[pygame.K_SPACE]:
-            for character in self.characters_sprites:
-                if check_connection(100, self.player, character):
-                    #block player input
-                    self.player.block()
-                    #entities face each other
-                    character.change_facing_direction(self.player.rect.center)
-                    #create dialog
-                    print("dialog")
+        if not self.dialog_tree:
+            keys = pygame.key.get_just_pressed()
+            if keys[pygame.K_SPACE]:
+                for character in self.characters_sprites:
+                    if check_connection(100, self.player, character):
+                        #block player input
+                        self.player.block()
+                        #entities face each other
+                        character.change_facing_direction(self.player.rect.center)
+                        #create dialog
+                        self.create_dialog(character)
+                        #print("dialog")
+    
+    def create_dialog(self, character):
+        if not self.dialog_tree:
+            self.dialog_tree = DialogTree(character, self.player, self.all_sprites, self.fonts['dialog'])
 
     def run(self):
         while True:
@@ -140,6 +154,10 @@ class Game:
             self.all_sprites.draw(self.player.rect.center)
             # print(self.clock.get_fps())
             # print(dt)
+
+            #overlays
+            if self.dialog_tree: self.dialog_tree.update()
+
             pygame.display.update()     
 
 if __name__ == '__main__':
