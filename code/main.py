@@ -70,6 +70,8 @@ class Game:
         MAPS_PATH = os.path.join(BASE_DIR, '../data/maps')
         BOLD_PATH = os.path.join(BASE_DIR, '../graphics/fonts/dogicapixelbold.otf')
         ICONS_PATH = os.path.join(BASE_DIR, '../graphics/icons')
+        MONSTER_PATH = os.path.join(BASE_DIR, '../graphics/monsters')
+        UI_PATH = os.path.join(BASE_DIR, '../graphics/ui')
 
         #join() parameter will create a path like ../data/maps/world.tmx
         # self.tmx_maps = {	
@@ -95,7 +97,9 @@ class Game:
         }
 
         self.monster_frames = {
-            'icons' : import_folder_dict(ICONS_PATH)
+            'icons' : import_folder_dict(ICONS_PATH),
+            'monsters': monster_importer(MONSTER_PATH), 
+            'ui': import_folder_dict(UI_PATH)
         }
 
     def setup(self, tmx_map, player_start_pos):
