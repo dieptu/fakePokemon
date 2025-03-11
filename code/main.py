@@ -42,19 +42,23 @@ class Game:
     def import_asset(self):
         #access the map of the world for the game
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of main.py
-        TMX_PATH_WORLD = os.path.join(BASE_DIR, "../data/maps/world.tmx")  # Construct absolute path
-        TMX_PATH_HOSPITAL = os.path.join(BASE_DIR, "../data/maps/hospital.tmx")
+        # TMX_PATH_WORLD = os.path.join(BASE_DIR, "../data/maps/world.tmx")  # Construct absolute path
+        # TMX_PATH_HOSPITAL = os.path.join(BASE_DIR, "../data/maps/hospital.tmx")
         WATER_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/water')
         COAST_PATH = os.path.join(BASE_DIR, '../graphics/tilesets/coast')
         CHARACTER_PATH = os.path.join(BASE_DIR, '../graphics/characters')
         DIALOG_PATH = os.path.join(BASE_DIR, '../graphics/fonts/PixeloidSans.ttf')
+        MAPS_PATH = os.path.join(BASE_DIR, '../data/maps')
 
         #join() parameter will create a path like ../data/maps/world.tmx
-        self.tmx_maps = {	
-            'world': pytmx.util_pygame.load_pygame(TMX_PATH_WORLD),  # Use absolute path
-            # 'world': load_pygame('MyGames/pokemon/data/maps/world.tmx'), #Not working with this one or join()
-            'hospital': pytmx.util_pygame.load_pygame(TMX_PATH_HOSPITAL)	
-        }
+        # self.tmx_maps = {	
+        #     'world': pytmx.util_pygame.load_pygame(TMX_PATH_WORLD),  # Use absolute path
+        #     # 'world': load_pygame('MyGames/pokemon/data/maps/world.tmx'), #Not working with this one or join()
+        #     'hospital': pytmx.util_pygame.load_pygame(TMX_PATH_HOSPITAL),	
+
+        # }
+        # print(tmx_importer(MAPS_PATH)) 
+        self.tmx_maps = tmx_importer(MAPS_PATH)
 
         self.overworld_frame = {
             'water': import_folder(WATER_PATH),
@@ -249,7 +253,7 @@ class Game:
             #game logic
             #as long as the loop is running, the display will get update
             self.input()
-            self.transition_check1()
+            
 
             #run sprites before update
             self.all_sprites.update(dt)
@@ -259,7 +263,7 @@ class Game:
 
             #overlays
             if self.dialog_tree: self.dialog_tree.update()
-
+            self.transition_check1()
             self.tint_screen1(dt)
 
             #self.tint_screen(dt)

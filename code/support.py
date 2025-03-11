@@ -132,6 +132,21 @@ def outline_creator(frame_dict, width):
 				outline_frame_dict[monster][state].append(new_surf)
 	return outline_frame_dict
 
+def tmx_importer(*path):
+	tmx_dict = {}
+	for folder_path, sub_folders, file_names in walk(join(*path)):
+		for file in file_names:
+			tmx_dict[file.split('.')[0]] = load_pygame(join(folder_path, file))
+	return tmx_dict
+
+def audio_importer(*path):
+	files = {}
+	for folder_path, _, file_names in walk(join(*path)):
+		for file_name in file_names:
+			full_path = join(folder_path, file_name)
+			files[file_name.split('.')[0]] = pygame.mixer.Sound(full_path)
+	return files
+
 # functions 
 def check_connection(radius, entity, target, tolerance = 30):
 	relation = vector(target.rect.center) - vector(entity.rect.center)
