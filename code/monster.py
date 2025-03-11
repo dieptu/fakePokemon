@@ -10,6 +10,7 @@ class Monster:
         self.base_stats = MONSTER_DATA[name]['stats']
         self.health = self.base_stats['max_health'] * self.level
         self.energy = self.base_stats['max_energy'] *self.level
+        self.abilities = MONSTER_DATA[name]['abilities']
 
         self.health -= randint(0,200)
         self.energy -= randint(0,100)
@@ -32,3 +33,6 @@ class Monster:
             "speed": self.get_stat('speed'),
             "recovery": self.get_stat('recovery'),
         }
+    
+    def get_abilities(self):
+        return [ability for lvl, ability in self.abilities.items() if self.level >= lvl]
