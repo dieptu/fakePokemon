@@ -12,6 +12,7 @@ from dialog import DialogTree
 
 from support import *
 from monster import Monster
+from monster_index import MonsterIndex
 
 class Game:
     #general
@@ -50,7 +51,12 @@ class Game:
 
         self.import_asset()
         self.setup(self.tmx_maps['world'], 'house')
+        
+        #overlays
         self.dialog_tree = None
+        self.monster_index = MonsterIndex(self.player_monster, self.fonts, self.monster_frames)
+        self.index_open = False
+
 
     def import_asset(self):
         #access the map of the world for the game
@@ -63,6 +69,7 @@ class Game:
         DIALOG_PATH = os.path.join(BASE_DIR, '../graphics/fonts/PixeloidSans.ttf')
         MAPS_PATH = os.path.join(BASE_DIR, '../data/maps')
         BOLD_PATH = os.path.join(BASE_DIR, '../graphics/fonts/dogicapixelbold.otf')
+        ICONS_PATH = os.path.join(BASE_DIR, '../graphics/icons')
 
         #join() parameter will create a path like ../data/maps/world.tmx
         # self.tmx_maps = {	
@@ -85,6 +92,10 @@ class Game:
             "regular": pygame.font.Font(DIALOG_PATH, 18),
             "small": pygame.font.Font(DIALOG_PATH, 14),
             "bold": pygame.font.Font(BOLD_PATH, 20)
+        }
+
+        self.monster_frames = {
+            'icons' : import_folder_dict(ICONS_PATH)
         }
 
     def setup(self, tmx_map, player_start_pos):
@@ -174,6 +185,9 @@ class Game:
                         self.create_dialog(character)
                         #print("dialog")
                         character.can_rotate = False
+            if keys[pygame.K_RETURN]:
+                self.index_open = not self.index_open
+                self.player.blocked = not self.player.blocked
     
     def create_dialog(self, character):
         if not self.dialog_tree:
@@ -280,6 +294,7 @@ class Game:
 
             #overlays
             if self.dialog_tree: self.dialog_tree.update()
+            if self.index_open: self.monster_index.update(dt)
             self.transition_check1()
             self.tint_screen1(dt)
 
