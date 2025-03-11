@@ -11,6 +11,7 @@ from groups import AllSprites
 from dialog import DialogTree
 
 from support import *
+from monster import Monster
 
 class Game:
     #general
@@ -19,6 +20,18 @@ class Game:
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Fake Pokemon")
         self.clock = pygame.time.Clock()
+
+        #player monster
+        self.player_monster = {
+            0: Monster("Charmadillo", 30),
+            1: Monster("Friolera", 29),
+            2: Monster("Larvea", 3),
+            3: Monster("Atrox", 24),
+            4: Monster("Sparchu", 24),
+            5: Monster("Gulfin", 4),
+            6: Monster("Jacana", 2),
+            7: Monster("Pouch", 3)
+        }
 
         #groups
         #self.all_sprites = pygame.sprite.Group()
@@ -49,6 +62,7 @@ class Game:
         CHARACTER_PATH = os.path.join(BASE_DIR, '../graphics/characters')
         DIALOG_PATH = os.path.join(BASE_DIR, '../graphics/fonts/PixeloidSans.ttf')
         MAPS_PATH = os.path.join(BASE_DIR, '../data/maps')
+        BOLD_PATH = os.path.join(BASE_DIR, '../graphics/fonts/dogicapixelbold.otf')
 
         #join() parameter will create a path like ../data/maps/world.tmx
         # self.tmx_maps = {	
@@ -67,7 +81,10 @@ class Game:
         }
         #print(self.overworld_frame['coast'])
         self.fonts = {
-            "dialog": pygame.font.Font(DIALOG_PATH, 30)
+            "dialog": pygame.font.Font(DIALOG_PATH, 30),
+            "regular": pygame.font.Font(DIALOG_PATH, 18),
+            "small": pygame.font.Font(DIALOG_PATH, 14),
+            "bold": pygame.font.Font(BOLD_PATH, 20)
         }
 
     def setup(self, tmx_map, player_start_pos):
