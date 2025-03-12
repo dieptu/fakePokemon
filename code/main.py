@@ -13,6 +13,7 @@ from dialog import DialogTree
 from support import *
 from monster import Monster
 from monster_index import MonsterIndex
+from battle import Battle
 
 class Game:
     #general
@@ -32,6 +33,14 @@ class Game:
             5: Monster("Gulfin", 4),
             6: Monster("Jacana", 2),
             7: Monster("Pouch", 3)
+        }
+
+        self.dummy_monster = {
+            0: Monster("Atrox", 12),
+            1: Monster("Sparchu", 15),
+            2: Monster("Gulfin", 19),
+            3: Monster("Jacana", 2),
+            4: Monster("Pouch", 3)
         }
 
         #groups
@@ -56,6 +65,7 @@ class Game:
         self.dialog_tree = None
         self.monster_index = MonsterIndex(self.player_monster, self.fonts, self.monster_frames)
         self.index_open = False
+        self.battle = Battle(self.player_monster, self.dummy_monster, self.monster_frames, self.bg_frames['forest'], self.fonts)
 
 
     def import_asset(self):
@@ -72,6 +82,7 @@ class Game:
         ICONS_PATH = os.path.join(BASE_DIR, '../graphics/icons')
         MONSTER_PATH = os.path.join(BASE_DIR, '../graphics/monsters')
         UI_PATH = os.path.join(BASE_DIR, '../graphics/ui')
+        BACKGROUND_PATH = os.path.join(BASE_DIR, '../graphics/backgrounds')
 
         #join() parameter will create a path like ../data/maps/world.tmx
         # self.tmx_maps = {	
@@ -101,6 +112,9 @@ class Game:
             'monsters': monster_importer(MONSTER_PATH), 
             'ui': import_folder_dict(UI_PATH)
         }
+
+        self.bg_frames = import_folder_dict(BACKGROUND_PATH)
+        
 
     def setup(self, tmx_map, player_start_pos):
         #background to frontground
@@ -176,7 +190,7 @@ class Game:
 
     #dialog system
     def input(self):
-        if not self.dialog_tree:
+        if not self.dialog_tree and not self.battle:
             keys = pygame.key.get_just_pressed()
             if keys[pygame.K_SPACE]:
                 for character in self.characters_sprites:
@@ -297,8 +311,9 @@ class Game:
             # print(dt)
 
             #overlays
-            if self.dialog_tree: self.dialog_tree.update()
-            if self.index_open: self.monster_index.update(dt)
+            if self.dialog_tree : self.dialog_tree.update()
+            if self.index_open  : self.monster_index.update(dt)
+            if self.battle      : self.battle.update(dt)
             self.transition_check1()
             self.tint_screen1(dt)
 
@@ -311,3 +326,4 @@ if __name__ == '__main__':
     game.run()
 
 
+#6:28:00
