@@ -12,6 +12,7 @@ class Monster:
         self.energy = self.base_stats['max_energy'] * self.level
         self.initiative = 0
         self.abilities = MONSTER_DATA[name]['abilities']
+        self.paused = False
 
 
         # self.health -= randint(0,200)
@@ -48,3 +49,7 @@ class Monster:
 			(self.energy, self.get_stat('max_energy')),
 			(self.initiative, 100)
 			)
+    
+    def update(self, dt):
+        if not self.paused:
+            self.initiative += self.get_stat('speed')*dt

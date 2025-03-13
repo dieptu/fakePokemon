@@ -109,28 +109,6 @@ def coast_importer(cols, rows, *path):
 			new_dict[terrain][key] = [frame_dict[(pos[0] + index * 3,pos[1] + row)] for row in range(0,12,3)]
 	return new_dict
 
-def outline_creator(frame_dict, width):
-	outline_frame_dict = {}
-	for monster, monster_frames in frame_dict.items():
-		outline_frame_dict[monster] = {}
-		for state, frames in monster_frames.items():
-			outline_frame_dict[monster][state] = []
-			for frame in frames:
-				new_surf = pygame.Surface(vector(frame.get_size()) + vector(width * 2))
-				white_surf = pygame.mask.from_surface(frame).to_surface()
-				white_surf.set_colorkey('black')
-				new_surf.set_colorkey('black')
-				
-				new_surf.blit(white_surf, (0,0)) # topleft
-				new_surf.blit(white_surf, (width,0)) # topcenter
-				new_surf.blit(white_surf, (width * 2,0)) # topright
-				new_surf.blit(white_surf, (width * 2,width)) # right
-				new_surf.blit(white_surf, (width * 2,width*2)) # bottomright
-				new_surf.blit(white_surf, (width, width*2)) # bottom 
-				new_surf.blit(white_surf, (0, width*2)) # bottomleft 
-				new_surf.blit(white_surf, (0, width)) # left 
-				outline_frame_dict[monster][state].append(new_surf)
-	return outline_frame_dict
 
 def tmx_importer(*path):
 	tmx_dict = {}
@@ -147,7 +125,7 @@ def audio_importer(*path):
 			files[file_name.split('.')[0]] = pygame.mixer.Sound(full_path)
 	return files
 
-# functions 
+# # functions 
 def check_connection(radius, entity, target, tolerance = 30):
 	relation = vector(target.rect.center) - vector(entity.rect.center)
 	if relation.length() < radius:
@@ -163,3 +141,40 @@ def draw_bar(surface, rect, value, max_value, color, bg_color, radius = 1):
 	progress_rect = pygame.FRect(rect.topleft, (max(0, value) * ratio, rect.size[1]))
 	pygame.draw.rect(surface, bg_color, bg_rect,0,radius)
 	pygame.draw.rect(surface, color, progress_rect,0,radius)
+
+#outline of the square white
+def outline_creator(frame_dict, width):
+    outline_frame_dict = {}
+
+    for monster, monster_frames in frame_dict.items():
+        outline_frame_dict[monster] = {}
+
+        for state, frames in monster_frames.items():
+            outline_frame_dict[monster][state] = []
+
+            for frame in frames:
+                # Create transparent surface large enough for the outline
+                new_surf = pygame.Surface(
+                    (frame.get_width() + width * 2, frame.get_height() + width * 2),
+                    pygame.SRCALPHA
+                )
+                new_surf.fill((0, 0, 0, 0))  # Fully transparent
+
+                # Create a mask from the sprite
+                mask = pygame.mask.from_surface(frame)
+                outline_points = mask.outline()  # Get actual shape outline
+
+                # Offset the points so they wrap around the monster
+                outline_points = [(x + width, y + width) for x, y in outline_points]
+
+                # Ensure the outline isn't just a bounding box by checking length
+                if len(outline_points) > 1:
+                    pygame.draw.polygon(new_surf, (255, 255, 255), outline_points, width)
+
+                # Blit the original sprite onto the new surface
+                new_surf.blit(frame, (width, width))
+
+                # Store the outlined sprite
+                outline_frame_dict[monster][state].append(new_surf)
+
+    return outline_frame_dict

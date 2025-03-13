@@ -112,7 +112,8 @@ class Game:
             'monsters': monster_importer(MONSTER_PATH), 
             'ui': import_folder_dict(UI_PATH)
         }
-
+        self.monster_frames['outlines'] = outline_creator(self.monster_frames['monsters'], 5)
+        print('MONSTER_FRAMES - OUTLINES \n\n',self.monster_frames['outlines'])
         self.bg_frames = import_folder_dict(BACKGROUND_PATH)
         
 
@@ -326,4 +327,4 @@ if __name__ == '__main__':
     game.run()
 
 
-#6:28:00
+#7:50:00

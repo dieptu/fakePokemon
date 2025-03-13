@@ -1,5 +1,6 @@
 from settings import *
 from sprites import *
+from groups import BattleSprites
 
 class Battle:
     def __init__(self, player_monsters, opponent_monsters, monster_frames, bg_surf, fonts):
@@ -14,9 +15,11 @@ class Battle:
         }
 
         #groups
-        self.battle_sprites = pygame.sprite.Group()
+        self.battle_sprites = BattleSprites()
         self.player_sprites = pygame.sprite.Group()
         self.opponent_sprites = pygame.sprite.Group()
+
+        self.current_monster = None
 
         self.setup()
 
@@ -28,17 +31,20 @@ class Battle:
 
     
     def create_monster(self, monster, index, pos_index, entity):
-        #monster
         frames = self.monster_frames['monsters'][monster.name]
+        outline_frames = self.monster_frames['outlines'][monster.name]
+        #print(outline_frames)
         if entity == 'player':
             pos = list(BATTLE_POSITIONS['left'].values())[pos_index]
             groups = (self.battle_sprites, self.player_sprites)
             frames = {state: [pygame.transform.flip(frame, True, False) for frame in frames] for state, frames in frames.items()}
+            outline_frames = {state: [pygame.transform.flip(frame, True, False) for frame in frames] for state, frames in outline_frames.items()}
         else:
             pos = list(BATTLE_POSITIONS['right'].values())[pos_index]
             groups = (self.battle_sprites, self.opponent_sprites)
-        
+
         monster_sprite = MonsterSprite(pos, frames, groups, monster, index, pos_index, entity)
+        MonsterOutlineSprite(monster_sprite, self.battle_sprites, outline_frames)
 
         #ui stat of each monster
         name_pos = monster_sprite.rect.midleft + vector(16,-70) if entity == 'player' else monster_sprite.rect.midright + vector(-40,-70)
@@ -47,7 +53,26 @@ class Battle:
         MonsterLevelSprite(entity, level_pos, monster_sprite, self.battle_sprites, self.fonts['small'])
         MonsterStatsSprite(monster_sprite.rect.midbottom + vector(0,20), monster_sprite, (150,48), self.battle_sprites, self.fonts['small'])
 
+    #battke system
+    def check_active(self):
+        for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
+            if monster_sprite.monster.initiative >= 100:
+                self.update_all_monsters('pause')
+                monster_sprite.monster.initative = 0
+                monster_sprite.set_highlight(True)
+                self.current_monster = monster_sprite
+    
+    def update_all_monsters(self, option):
+        for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
+            monster_sprite.monster.paused = True if option == 'pause' else False
+
     def update(self, dt):
-        self.display_surface.blit(self.bg_surf, (0,0))
+        #updated
         self.battle_sprites.update(dt)
-        self.battle_sprites.draw(self.display_surface)
+        self.check_active()
+
+
+        #drawing 
+        self.display_surface.blit(self.bg_surf, (0,0))
+        
+        self.battle_sprites.draw(self.current_monster)

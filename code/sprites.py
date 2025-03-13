@@ -54,26 +54,35 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.pos_index = pos_index
         self.entity = entity
         self.monster = monster
-        self.frames_index, self.frames, self.state = 0, frames, 'idle'
+        self.frame_index, self.frames, self.state = 0, frames, 'idle'
         self.animation_speed = ANIMATION_SPEED * uniform(-1, 1)
+        self.z = BATTLE_LAYERS['monster']
+        self.highlight = False
 
         #sprite set up
         super().__init__(groups)
-        self.image = self.frames[self.state][self.frames_index]
+        self.image = self.frames[self.state][self.frame_index]
         self.rect = self.image.get_frect(center = pos)
 
     def animate(self, dt):
-        self.frames_index += ANIMATION_SPEED *dt
-        self.image = self.frames[self.state][int(self.frames_index) % len(self.frames[self.state])]
+        self.frame_index += ANIMATION_SPEED *dt
+        self.adjusted_frame_index = int(self.frame_index % len(self.frames[self.state]))
+        self.image = self.frames[self.state][self.adjusted_frame_index]
 
     def update(self, dt):
         self.animate(dt)
+        self.monster.update(dt)
+
+    def set_highlight(self, value):
+        self.highlight = value
+        # if value: 
+        #     self.timers['remove highlight'].activate()
 
 
 class MonsterNameSprite(pygame.sprite.Sprite):
     def __init__(self, pos, monster_sprite, groups, font):
         super().__init__(groups)
-
+        self.z = BATTLE_LAYERS['name']
         self.monster_sprite = monster_sprite
 
         text_surf = font.render(monster_sprite.monster.name, False, COLORS['black'])
@@ -89,6 +98,7 @@ class MonsterLevelSprite(pygame.sprite.Sprite):
         super().__init__(groups)
         self.monster_sprite = monster_sprite
         self.font = font
+        self.z = BATTLE_LAYERS['name']
 
         self.image = pygame.Surface((60,26))
         self.rect = self.image.get_frect(topleft = pos) if entity == 'player' else self.image.get_frect(topright = pos)
@@ -109,6 +119,7 @@ class MonsterStatsSprite(pygame.sprite.Sprite):
     def __init__(self, pos, monster_sprite, size, groups, font):
         super().__init__(groups)
         self.monster_sprite = monster_sprite
+        self.z = BATTLE_LAYERS['overlay']
 
         self.image = pygame.Surface(size)
         self.rect = self.image.get_frect(midbottom = pos)
@@ -130,6 +141,29 @@ class MonsterStatsSprite(pygame.sprite.Sprite):
                 init_rect = pygame.FRect((0, self.rect.height - 2), (self.rect.width, 2)) 
                 draw_bar(self.image, init_rect, value, max_value, color, COLORS['white'], 0)
 
+class MonsterOutlineSprite(pygame.sprite.Sprite):
+    def __init__(self, monster_sprite, groups, frames):
+        super().__init__(groups)
+        self.z = BATTLE_LAYERS['outline']
+        self.monster_sprite = monster_sprite
+        self.frames = frames
+    
 
-            
+        # self.image = self.frames[self.monster_sprite.state][self.monster_sprite.frame_index]
 
+        self.image = pygame.transform.scale(self.frames[self.monster_sprite.state][self.monster_sprite.frame_index], 
+                                        (int(self.monster_sprite.rect.width * 1.1), int(self.monster_sprite.rect.height * 1.1)))
+    
+        # Position the outline **slightly larger** than the monster to make it visible
+        self.rect = self.image.get_frect(center=self.monster_sprite.rect.center)
+
+    def update(self, _):
+        """ Syncs the outline frame with the monster's animation """
+        self.image = self.frames[self.monster_sprite.state][self.monster_sprite.adjusted_frame_index]
+        self.rect.center = self.monster_sprite.rect.center  # Keep it aligned with the monster
+        
+        # Optional visibility condition
+        if not self.monster_sprite.highlight:
+            self.image.set_alpha(0)  # Make the outline invisible when not highlighted
+        else:
+            self.image.set_alpha(255)  # Make the outline visible when highlighted
