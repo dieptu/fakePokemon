@@ -20,6 +20,17 @@ class Battle:
         self.opponent_sprites = pygame.sprite.Group()
 
         self.current_monster = None
+        self.selection_mode = None
+        self.selection_side = 'player'
+        self.indexes = {
+            'general': 0,
+            'monster': 0,
+            'attacks': 0,
+            'switch': 0,
+            'target': 0,
+        }
+
+        
 
         self.setup()
 
@@ -56,17 +67,34 @@ class Battle:
     #battke system
     def check_active(self):
         for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
-            if monster_sprite.monster.initiative >= 100:
+            if monster_sprite.monster.initiative >= 100 and self.current_monster != monster_sprite:
                 self.update_all_monsters('pause')
-                monster_sprite.monster.initative = 0
+                monster_sprite.monster.initiative = 0
                 if not monster_sprite.highlight:
                     monster_sprite.set_highlight(True)
                     HighlightSprite(monster_sprite.rect.center, monster_sprite.image.get_size(), self.battle_sprites)
                 self.current_monster = monster_sprite
+                if self.player_sprites in monster_sprite.groups():
+                    print("player monster ready")
+                    self.selection_mode = 'general'
     
     def update_all_monsters(self, option):
         for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
             monster_sprite.monster.paused = True if option == 'pause' else False
+
+    def draw_ui(self):
+        if self.current_monster:
+            if self.selection_mode == "general":
+                self.draw_general()
+
+    def draw_general(self):
+        for index, (option, data_dict) in enumerate(BATTLE_CHOICES['full'].items()):
+            if (index == self.indexes['general']):
+                surf = self.monster_frames['ui'][f"{data_dict['icon']}_highlight"]
+            else:
+                surf = pygame.transform.grayscale(self.monster_frames['ui'][data_dict['icon']])
+            rect = surf.get_frect(center = self.current_monster.rect.midright + data_dict['pos'])
+            self.display_surface.blit(surf, rect)
 
     def update(self, dt):
         #updated
@@ -78,3 +106,6 @@ class Battle:
         self.display_surface.blit(self.bg_surf, (0,0))
         
         self.battle_sprites.draw(self.current_monster)
+        self.draw_ui()
+
+    

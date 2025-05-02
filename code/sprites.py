@@ -101,7 +101,7 @@ class MonsterSprite(pygame.sprite.Sprite):
     def set_highlight(self, value):
         if self.highlight == value:
             return  # Only act if there's an actual change
-        print(f"[Highlight] Set to {value}")
+        #print(f"[Highlight] Set to {value}")
         self.highlight = value
         if value:
             self.timers["remove highlight"].activate()
