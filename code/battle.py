@@ -78,6 +78,21 @@ class Battle:
                     print("player monster ready")
                     self.selection_mode = 'general'
     
+    def input(self):
+        if self.selection_mode and self.current_monster:
+            keys = pygame.key.get_just_pressed()
+
+            match self.selection_mode:
+                case 'general' : limiter = len(BATTLE_CHOICES['full'])
+
+
+            if keys[pygame.K_DOWN]:
+                self.indexes[self.selection_mode] = (self.indexes['general'] + 1 ) % limiter
+            if keys[pygame.K_UP]:
+                self.indexes[self.selection_mode] = (self.indexes['general'] - 1 ) % limiter
+            if keys[pygame.K_SPACE]:
+                pass
+
     def update_all_monsters(self, option):
         for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
             monster_sprite.monster.paused = True if option == 'pause' else False
@@ -98,6 +113,7 @@ class Battle:
 
     def update(self, dt):
         #updated
+        self.input()
         self.battle_sprites.update(dt)
         self.check_active()
 
