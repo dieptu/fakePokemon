@@ -48,6 +48,65 @@ class AnimatedSprite(Sprite):
         self.animate(dt)
 
 
+# class MonsterSprite(pygame.sprite.Sprite):
+#     def __init__(self, pos, frames, groups, monster, index, pos_index, entity):
+#         #data
+#         self.index = index
+#         self.pos_index = pos_index
+#         self.entity = entity
+#         self.monster = monster
+#         self.frame_index, self.frames, self.state = 0, frames, 'idle'
+#         self.animation_speed = ANIMATION_SPEED * uniform(-1, 1)
+#         self.z = BATTLE_LAYERS['monster']
+#         self.highlight = False
+
+#         #sprite set up
+#         super().__init__(groups)
+#         self.image = self.frames[self.state][self.frame_index]
+#         self.rect = self.image.get_frect(center = pos)
+
+#         #timer
+#         self.timers = {
+#             "remove highlight": Timer(500, func=lambda: self.set_highlight(False))
+#         }
+
+
+#     def animate(self, dt):
+#         self.frame_index += ANIMATION_SPEED *dt
+#         self.adjusted_frame_index = int(self.frame_index % len(self.frames[self.state]))
+#         self.image = self.frames[self.state][self.adjusted_frame_index]
+         
+#         # if self.highlight:
+#         #     white_surf = pygame.mask.from_surface(self.image).to_surface()
+#         #     white_surf.set_colorkey('black')
+#         #     self.image = white_surf
+#         # if self.highlight:
+#         #     # Create white highlight from mask
+#         #     mask_surf = pygame.mask.from_surface(self.image).to_surface()
+#         #     mask_surf.set_colorkey('black')
+#         #     mask_surf.fill((255, 255, 255))  # Make sure it's white
+
+#         #     # Create new surface with both highlight and original image
+#         #     self.image = self.image.copy()
+#         #     self.image.blit(mask_surf, (0, 0))  # Draw highlight ON image
+#         # else:
+#         #     self.image = self.image
+
+#     def update(self, dt):
+#         for timer in self.timers.values():
+#             timer.update()
+#         self.animate(dt)
+#         self.monster.update(dt)
+
+#     def set_highlight(self, value, surface):
+#         if self.highlight == value:
+#             return  # Only act if there's an actual change
+#         #print(f"[Highlight] Set to {value}")
+#         self.highlight = value
+#         if value:
+#             #self.timers["remove highlight"].activate()
+#             pygame.draw.rect(surface, (255, 0, 0), self.rect, 3)
+
 class MonsterSprite(pygame.sprite.Sprite):
     def __init__(self, pos, frames, groups, monster, index, pos_index, entity):
         #data
@@ -65,47 +124,27 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.image = self.frames[self.state][self.frame_index]
         self.rect = self.image.get_frect(center = pos)
 
-        #timer
+        #timer for highlight removal (if needed)
         self.timers = {
             "remove highlight": Timer(500, func=lambda: self.set_highlight(False))
         }
 
-
     def animate(self, dt):
-        self.frame_index += ANIMATION_SPEED *dt
+        self.frame_index += ANIMATION_SPEED * dt
         self.adjusted_frame_index = int(self.frame_index % len(self.frames[self.state]))
         self.image = self.frames[self.state][self.adjusted_frame_index]
-         
-        # if self.highlight:
-        #     white_surf = pygame.mask.from_surface(self.image).to_surface()
-        #     white_surf.set_colorkey('black')
-        #     self.image = white_surf
-        # if self.highlight:
-        #     # Create white highlight from mask
-        #     mask_surf = pygame.mask.from_surface(self.image).to_surface()
-        #     mask_surf.set_colorkey('black')
-        #     mask_surf.fill((255, 255, 255))  # Make sure it's white
-
-        #     # Create new surface with both highlight and original image
-        #     self.image = self.image.copy()
-        #     self.image.blit(mask_surf, (0, 0))  # Draw highlight ON image
-        # else:
-        #     self.image = self.image
-
+        
     def update(self, dt):
         for timer in self.timers.values():
             timer.update()
         self.animate(dt)
         self.monster.update(dt)
 
-    def set_highlight(self, value, surface):
+    def set_highlight(self, value):
         if self.highlight == value:
             return  # Only act if there's an actual change
-        #print(f"[Highlight] Set to {value}")
-        self.highlight = value
-        if value:
-            #self.timers["remove highlight"].activate()
-            pygame.draw.rect(surface, (255, 0, 0), self.rect, 3)
+        self.highlight = value  # Set the highlight state
+        # Don't draw anything here; drawing will happen elsewhere
 
 
 class MonsterNameSprite(pygame.sprite.Sprite):
@@ -197,15 +236,27 @@ class MonsterOutlineSprite(pygame.sprite.Sprite):
         else:
             self.image.set_alpha(255)  # Make the outline visible when highlighted
 
+# class HighlightSprite(pygame.sprite.Sprite):
+#     def __init__(self, pos, size, groups):
+#         super().__init__(groups)
+#         self.image = pygame.Surface(size, pygame.SRCALPHA)
+#         self.image.fill((255, 255, 255, 100))  # semi-transparent white
+#         self.rect = self.image.get_rect(center=pos)
+#         self.z = BATTLE_LAYERS['highlight']  # <-- Add this line
+#         self.timer = Timer(500, func=self.kill)
+#         self.timer.activate()
+
+#     def update(self, dt=None):
+#         self.timer.update()
 class HighlightSprite(pygame.sprite.Sprite):
     def __init__(self, pos, size, groups):
         super().__init__(groups)
-        self.image = pygame.Surface(size, pygame.SRCALPHA)
-        self.image.fill((255, 255, 255, 100))  # semi-transparent white
+        self.image = pygame.Surface(size, pygame.SRCALPHA)  # Transparent surface
+        self.image.fill((255, 255, 255, 100))  # semi-transparent white (highlight color)
         self.rect = self.image.get_rect(center=pos)
-        self.z = BATTLE_LAYERS['highlight']  # <-- Add this line
-        self.timer = Timer(500, func=self.kill)
+        self.z = BATTLE_LAYERS['highlight']
+        self.timer = Timer(500, func=self.kill)  # Automatically kill highlight after 500 ms
         self.timer.activate()
 
     def update(self, dt=None):
-        self.timer.update()
+        self.timer.update()  # Update the timer to remove highlight after a while
