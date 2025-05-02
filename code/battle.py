@@ -59,7 +59,9 @@ class Battle:
             if monster_sprite.monster.initiative >= 100:
                 self.update_all_monsters('pause')
                 monster_sprite.monster.initative = 0
-                monster_sprite.set_highlight(True)
+                if not monster_sprite.highlight:
+                    monster_sprite.set_highlight(True)
+                    HighlightSprite(monster_sprite.rect.center, monster_sprite.image.get_size(), self.battle_sprites)
                 self.current_monster = monster_sprite
     
     def update_all_monsters(self, option):

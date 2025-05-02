@@ -38,11 +38,13 @@ BATTLE_POSITIONS = {
 }
 
 BATTLE_LAYERS =  {
-	'outline': 0,
-	'name': 1,
-	'monster': 2,
-	'effects': 3,
-	'overlay': 4
+	
+    'outline': 0,
+    'highlight': 1,
+	'name': 2,
+	'monster': 3,
+	'effects': 4,
+	'overlay': 5,
 }
 
 BATTLE_CHOICES = {

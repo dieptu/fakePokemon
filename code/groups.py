@@ -39,7 +39,8 @@ class BattleSprites(pygame.sprite.Group):
         self.display_surface = pygame.display.get_surface()
 
     def draw(self, current_monster_sprite):
-        for sprite in sorted(self, key = lambda sprite: sprite.z):
+        for sprite in sorted(self, key=lambda s: getattr(s, 'z', 0)):
+        #for sprite in sorted(self, key = lambda sprite: sprite.z):
             if sprite.z == BATTLE_LAYERS['outline']:
                 if sprite.monster_sprite == current_monster_sprite:
                     self.display_surface.blit(sprite.image, sprite.rect)

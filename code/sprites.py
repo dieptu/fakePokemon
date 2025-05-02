@@ -1,6 +1,7 @@
 from settings import *
 from random import uniform
 from support import draw_bar
+from mytimer import Timer
 
 #position rectangle and graphic in pygame
 class Sprite(pygame.sprite.Sprite):
@@ -64,19 +65,46 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.image = self.frames[self.state][self.frame_index]
         self.rect = self.image.get_frect(center = pos)
 
+        #timer
+        self.timers = {
+            "remove highlight": Timer(500, func=lambda: self.set_highlight(False))
+        }
+
+
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED *dt
         self.adjusted_frame_index = int(self.frame_index % len(self.frames[self.state]))
         self.image = self.frames[self.state][self.adjusted_frame_index]
+         
+        # if self.highlight:
+        #     white_surf = pygame.mask.from_surface(self.image).to_surface()
+        #     white_surf.set_colorkey('black')
+        #     self.image = white_surf
+        # if self.highlight:
+        #     # Create white highlight from mask
+        #     mask_surf = pygame.mask.from_surface(self.image).to_surface()
+        #     mask_surf.set_colorkey('black')
+        #     mask_surf.fill((255, 255, 255))  # Make sure it's white
+
+        #     # Create new surface with both highlight and original image
+        #     self.image = self.image.copy()
+        #     self.image.blit(mask_surf, (0, 0))  # Draw highlight ON image
+        # else:
+        #     self.image = self.image
 
     def update(self, dt):
+        for timer in self.timers.values():
+            timer.update()
         self.animate(dt)
         self.monster.update(dt)
 
     def set_highlight(self, value):
+        if self.highlight == value:
+            return  # Only act if there's an actual change
+        print(f"[Highlight] Set to {value}")
         self.highlight = value
-        # if value: 
-        #     self.timers['remove highlight'].activate()
+        if value:
+            self.timers["remove highlight"].activate()
 
 
 class MonsterNameSprite(pygame.sprite.Sprite):
@@ -167,3 +195,16 @@ class MonsterOutlineSprite(pygame.sprite.Sprite):
             self.image.set_alpha(0)  # Make the outline invisible when not highlighted
         else:
             self.image.set_alpha(255)  # Make the outline visible when highlighted
+
+class HighlightSprite(pygame.sprite.Sprite):
+    def __init__(self, pos, size, groups):
+        super().__init__(groups)
+        self.image = pygame.Surface(size, pygame.SRCALPHA)
+        self.image.fill((255, 255, 255, 100))  # semi-transparent white
+        self.rect = self.image.get_rect(center=pos)
+        self.z = BATTLE_LAYERS['highlight']  # <-- Add this line
+        self.timer = Timer(500, func=self.kill)
+        self.timer.activate()
+
+    def update(self, dt=None):
+        self.timer.update()
