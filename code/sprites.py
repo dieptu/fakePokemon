@@ -98,13 +98,14 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.animate(dt)
         self.monster.update(dt)
 
-    def set_highlight(self, value):
+    def set_highlight(self, value, surface):
         if self.highlight == value:
             return  # Only act if there's an actual change
         #print(f"[Highlight] Set to {value}")
         self.highlight = value
         if value:
-            self.timers["remove highlight"].activate()
+            #self.timers["remove highlight"].activate()
+            pygame.draw.rect(surface, (255, 0, 0), self.rect, 3)
 
 
 class MonsterNameSprite(pygame.sprite.Sprite):

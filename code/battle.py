@@ -23,6 +23,7 @@ class Battle:
         self.current_monster = None
         self.selection_mode = None
         self.selection_side = 'player'
+        self.selected_attack = None
         self.indexes = {
             'general': 0,
             'monster': 0,
@@ -71,30 +72,52 @@ class Battle:
             if monster_sprite.monster.initiative >= 100 and self.current_monster != monster_sprite:
                 self.update_all_monsters('pause')
                 monster_sprite.monster.initiative = 0
+
                 if not monster_sprite.highlight:
-                    monster_sprite.set_highlight(True)
+                    monster_sprite.set_highlight(True, self.display_surface)
                     HighlightSprite(monster_sprite.rect.center, monster_sprite.image.get_size(), self.battle_sprites)
                 self.current_monster = monster_sprite
+
                 if self.player_sprites in monster_sprite.groups():
                     print("player monster ready")
                     self.selection_mode = 'general'
+                elif self.opponent_sprites in monster_sprite.groups():
+                    print("opponent monster ready")
+                    self.selection_mode = 'target'
     
     def input(self):
         if self.selection_mode and self.current_monster:
             keys = pygame.key.get_just_pressed()
 
             match self.selection_mode:
-                case 'general' : limiter = len(BATTLE_CHOICES['full'])
-                case 'attack': limiter = len(self.current_monster.monster.get_abilities(all = False))
-                case 'switch': limiter = len(self.available_monsters)
-
+                case 'general':
+                    limiter = len(BATTLE_CHOICES['full'])
+                case 'attack':
+                    limiter = len(self.current_monster.monster.get_abilities(all=False))
+                case 'switch':
+                    limiter = len(self.available_monsters)
+                case 'target':
+                    limiter = len(self.opponent_sprites) if self.selection_side == 'opponent' else len(self.player_sprites)
 
             if keys[pygame.K_DOWN]:
-                self.indexes[self.selection_mode] = (self.indexes[self.selection_mode] + 1 ) % limiter
+                self.indexes[self.selection_mode] = (self.indexes[self.selection_mode] + 1) % limiter
             if keys[pygame.K_UP]:
-                self.indexes[self.selection_mode] = (self.indexes[self.selection_mode] - 1 ) % limiter
+                self.indexes[self.selection_mode] = (self.indexes[self.selection_mode] - 1) % limiter
             if keys[pygame.K_SPACE]:
-                if self.selection_mode == 'general':
+                if self.selection_mode == 'target':
+                    sprite_group = self.opponent_sprites if self.selection_side == 'opponent' else self.player_sprites
+                    sprites = list(sprite_group.sprites())  # Make it a list
+                    sprites.sort(key=lambda s: s.pos_index)  # Sort by position
+                    monster_sprite = sprites[self.indexes['target']]
+
+                    print(f"monster: {monster_sprite.monster.name}, lv: {monster_sprite.monster.level}")
+
+                elif self.selection_mode == 'attack':
+                    self.selection_mode = 'target'
+                    self.selected_attack = self.current_monster.monster.get_abilities(all=False)[self.indexes['attack']]
+                    self.selection_side = ATTACK_DATA[self.selected_attack]['target']
+                    # Now select the target after choosing the attack
+                elif self.selection_mode == 'general':
                     if self.indexes['general'] == 0:
                         self.selection_mode = 'attack'
 
@@ -122,10 +145,14 @@ class Battle:
         if self.current_monster:
             if self.selection_mode == "general":
                 self.draw_general()
-            if self.selection_mode == "attack":
+            elif self.selection_mode == "attack":
                 self.draw_attacks()
-            if self.selection_mode == "switch":
+            elif self.selection_mode == "switch":
                 self.draw_switch()
+            elif self.selection_mode == "target":
+                # Draw a highlight around the selected target (opponent monster)
+                opponent_sprite = self.opponent_sprites.sprites()[self.indexes['target']]
+                opponent_sprite.set_highlight(True, self.display_surface)  # Add highlight to the opponent
 
     def draw_general(self):
         for index, (option, data_dict) in enumerate(BATTLE_CHOICES['full'].items()):
@@ -224,7 +251,7 @@ class Battle:
         #drawing 
         self.display_surface.blit(self.bg_surf, (0,0))
         
-        self.battle_sprites.draw(self.current_monster)
+        self.battle_sprites.draw(self.current_monster, self.selection_side, self.selection_mode, self.indexes['target'], self.player_sprites, self.opponent_sprites)
         self.draw_ui()
 
     
