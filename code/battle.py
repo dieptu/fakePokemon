@@ -1,6 +1,7 @@
 from settings import *
 from sprites import *
 from groups import BattleSprites
+from game_data import ATTACK_DATA
 
 class Battle:
     def __init__(self, player_monsters, opponent_monsters, monster_frames, bg_surf, fonts):
@@ -25,7 +26,7 @@ class Battle:
         self.indexes = {
             'general': 0,
             'monster': 0,
-            'attacks': 0,
+            'attack': 0,
             'switch': 0,
             'target': 0,
         }
@@ -84,14 +85,29 @@ class Battle:
 
             match self.selection_mode:
                 case 'general' : limiter = len(BATTLE_CHOICES['full'])
+                case 'attack': limiter = len(self.current_monster.monster.get_abilities(all = False))
 
 
             if keys[pygame.K_DOWN]:
-                self.indexes[self.selection_mode] = (self.indexes['general'] + 1 ) % limiter
+                self.indexes[self.selection_mode] = (self.indexes[self.selection_mode] + 1 ) % limiter
             if keys[pygame.K_UP]:
-                self.indexes[self.selection_mode] = (self.indexes['general'] - 1 ) % limiter
+                self.indexes[self.selection_mode] = (self.indexes[self.selection_mode] - 1 ) % limiter
             if keys[pygame.K_SPACE]:
-                pass
+                if self.selection_mode == 'general':
+                    if self.indexes['general'] == 0:
+                        self.selection_mode = 'attack'
+
+                    if self.indexes['general'] == 1:
+                        self.update_all_monsters('resume')
+                        self.current_monster, self.selection_mode = None, None
+                        self.indexes['general'] = 0
+
+                    if self.indexes['general'] == 2:
+                        self.selection_mode = 'switch'
+
+                    if self.indexes['general'] == 3:
+                        print('catch')
+                    
 
     def update_all_monsters(self, option):
         for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
@@ -101,6 +117,10 @@ class Battle:
         if self.current_monster:
             if self.selection_mode == "general":
                 self.draw_general()
+            if self.selection_mode == "attack":
+                self.draw_attacks()
+            if self.selection_mode == "switch":
+                self.draw_switch()
 
     def draw_general(self):
         for index, (option, data_dict) in enumerate(BATTLE_CHOICES['full'].items()):
@@ -110,6 +130,45 @@ class Battle:
                 surf = pygame.transform.grayscale(self.monster_frames['ui'][data_dict['icon']])
             rect = surf.get_frect(center = self.current_monster.rect.midright + data_dict['pos'])
             self.display_surface.blit(surf, rect)
+
+    def draw_attacks(self):
+        #data
+        abilities = self.current_monster.monster.get_abilities(all = False)
+        width, height = 150, 200
+        visible_attacks = 4
+        item_height = height / visible_attacks
+        v_offset = 0 if self.indexes['attack'] < visible_attacks else -(self.indexes['attack'] - visible_attacks + 1) * item_height
+
+        #background
+        bg_rect = pygame.FRect((0,0), (width, height)).move_to(midleft = self.current_monster.rect.midright + vector((20,0)))
+        pygame.draw.rect(self.display_surface, COLORS['white'], bg_rect,0,5 )
+        for index, ability in enumerate(abilities):
+            selected = index == self.indexes['attack']
+            #text
+            if selected:
+                element = ATTACK_DATA[ability]['element']
+                text_color = COLORS[element] if element != 'normal' else COLORS['black']
+
+            else:
+                text_color = COLORS['light']
+            text_surf = self.fonts['regular'].render(ability, False, text_color)
+            #rect
+            text_rect = text_surf.get_frect(center = bg_rect.midtop + vector(0, item_height/2 + index * item_height + v_offset))
+            text_bg_rect = pygame.FRect((0,0), (width, item_height)).move_to(center = text_rect.center)
+
+            #draw
+            if bg_rect.collidepoint(text_rect.center):
+                if selected:
+                    if text_bg_rect.collidepoint(bg_rect.topleft):
+                        pygame.draw.rect(self.display_surface, COLORS['dark white'], text_bg_rect, 0,0,5,5)
+                    elif text_bg_rect.collidepoint(bg_rect.midbottom + vector(0,-1)):
+                        pygame.draw.rect(self.display_surface, COLORS['dark white'], text_bg_rect, 0,0,0,0,5,5)
+                    else:
+                        pygame.draw.rect(self.display_surface, COLORS['dark white'], text_bg_rect)
+                self.display_surface.blit(text_surf, text_rect)
+
+    def draw_switch(self):
+        pass
 
     def update(self, dt):
         #updated
