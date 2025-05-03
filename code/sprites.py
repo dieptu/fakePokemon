@@ -108,7 +108,7 @@ class AnimatedSprite(Sprite):
 #             pygame.draw.rect(surface, (255, 0, 0), self.rect, 3)
 
 class MonsterSprite(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, groups, monster, index, pos_index, entity, apply_attack):
+    def __init__(self, pos, frames, groups, monster, index, pos_index, entity, apply_attack, create_monster):
         #data
         self.index = index
         self.pos_index = pos_index
@@ -121,6 +121,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.target_sprite = None
         self.current_attack = None
         self.apply_attack = apply_attack
+        self.create_monster = create_monster
 
         #sprite set up
         super().__init__(groups)
@@ -129,7 +130,8 @@ class MonsterSprite(pygame.sprite.Sprite):
 
         #timer for highlight removal (if needed)
         self.timers = {
-            "remove highlight": Timer(500, func=lambda: self.set_highlight(False))
+            "remove highlight": Timer(500, func=lambda: self.set_highlight(False)),
+            "kill" : Timer(600, func = self.destroy)
         }
 
     def animate(self, dt):
@@ -148,7 +150,15 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.current_attack = attack
         self.monster.reduce_energy(attack)
 
+    def delayed_kill(self, new_monster):
+        if not self.timers['kill'].active:
+            self.next_monster_data = new_monster
+            self.timers['kill'].activate()
 
+    def destroy(self):
+        if self.next_monster_data:
+            self.create_monster(*self.next_monster_data)
+        self.kill()
 
 
     def update(self, dt):
@@ -163,6 +173,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.highlight = value  # Set the highlight state
         # Don't draw anything here; drawing will happen elsewhere
 
+    
 
 class MonsterNameSprite(pygame.sprite.Sprite):
     def __init__(self, pos, monster_sprite, groups, font):
@@ -263,7 +274,7 @@ class MonsterOutlineSprite(pygame.sprite.Sprite):
 
         if(not self.monster_sprite.groups()):
             self.kill()
-            
+
 # class HighlightSprite(pygame.sprite.Sprite):
 #     def __init__(self, pos, size, groups):
 #         super().__init__(groups)
@@ -304,3 +315,13 @@ class AttackSprite(AnimatedSprite):
 
     def update(self, dt):
         self.animate(dt)
+
+class TimedSprite(Sprite):
+    def __init__(self, pos, surf, groups, duration):
+        super().__init__(pos, surf, groups, z =BATTLE_LAYERS['overlay'])
+        self.rect.center = pos
+        self.death_timer = Timer(duration, autostart = True, func=self.kill)
+
+    def update(self, _):
+        self.death_timer.update()
+    
