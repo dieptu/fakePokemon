@@ -237,12 +237,21 @@ class Battle:
 
         #update the mosnter health
         target_sprite.monster.health -= amount_damage * target_defense
-
+        self.check_dealth()
 
         #resume the game
         self.update_all_monsters('resume')
         
-        
+    def check_dealth(self):
+        for monster_sprite in self.opponent_sprites.sprites() + self.player_sprites.sprites():
+            if monster_sprite.monster.health <= 0:
+                if self.player_sprites in monster_sprite.groups():
+                    pass
+                else:
+                    #new monster
+                    monster_sprite.kill()
+
+                    #xp
 
     def draw_ui(self):
         if self.current_monster:

@@ -178,6 +178,10 @@ class MonsterNameSprite(pygame.sprite.Sprite):
         self.image.blit(text_surf, (padding, padding))
         self.rect =self.image.get_frect(midtop = pos)
 
+    def update(self, _):
+        if(not self.monster_sprite.groups()):
+            self.kill()
+
 class MonsterLevelSprite(pygame.sprite.Sprite):
     def __init__(self,entity, pos, monster_sprite, groups, font):
         super().__init__(groups)
@@ -198,6 +202,8 @@ class MonsterLevelSprite(pygame.sprite.Sprite):
 
         
         draw_bar(self.image, self.xp_rect, self.monster_sprite.monster.xp, self.monster_sprite.monster.level_up, COLORS['black'], COLORS['white'], 0)
+        if(not self.monster_sprite.groups()):
+            self.kill()
 
 
 class MonsterStatsSprite(pygame.sprite.Sprite):
@@ -225,6 +231,8 @@ class MonsterStatsSprite(pygame.sprite.Sprite):
             else: # initiative
                 init_rect = pygame.FRect((0, self.rect.height - 2), (self.rect.width, 2)) 
                 draw_bar(self.image, init_rect, value, max_value, color, COLORS['white'], 0)
+        if(not self.monster_sprite.groups()):
+            self.kill()
 
 class MonsterOutlineSprite(pygame.sprite.Sprite):
     def __init__(self, monster_sprite, groups, frames):
@@ -253,6 +261,9 @@ class MonsterOutlineSprite(pygame.sprite.Sprite):
         else:
             self.image.set_alpha(255)  # Make the outline visible when highlighted
 
+        if(not self.monster_sprite.groups()):
+            self.kill()
+            
 # class HighlightSprite(pygame.sprite.Sprite):
 #     def __init__(self, pos, size, groups):
 #         super().__init__(groups)
