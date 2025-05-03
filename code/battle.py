@@ -37,7 +37,7 @@ class Battle:
             'switch': 0,
             'target': 0,
         }
-
+        self.battle_over = False
         
 
         self.setup()
@@ -84,6 +84,7 @@ class Battle:
     def check_active(self):
         for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
             if monster_sprite.monster.initiative >= 100 and self.current_monster != monster_sprite:
+                monster_sprite.monster.defending = False
                 self.update_all_monsters('pause')
                 monster_sprite.monster.initiative = 0
 
@@ -107,6 +108,18 @@ class Battle:
         self.current_monster.active_attack(random_target, ability)
         # self.current_monster.activate_attack(random_target, ability)
     
+    def check_end_battle(self):
+        #opponent defeated
+        if len(self.opponent_sprites) == 0 and not self.battle_over:
+            self.battle_over = True
+            print("battle won")
+            for monster in self.monster_data['player'].values():
+                monster.initiative = 0
+        #palyer defeated
+        if len(self.player_sprites) == 0:
+            print("game over")
+            pygame.quit()
+            exit()
    
     def input(self):
         if (self.selection_mode and self.current_monster and 
@@ -135,7 +148,7 @@ class Battle:
                     self.create_monster(new_monster, index, self.current_monster.pos_index, 'player')
                     self.selection_mode = None
                     self.update_all_monsters('resume')
-                    
+
                 elif self.selection_mode == 'target':
                     # Clear previous highlights
                     for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
@@ -179,6 +192,7 @@ class Battle:
                         self.selection_mode = 'attack'
 
                     if self.indexes['general'] == 1:
+                        self.current_monster.monster.defending = True
                         self.update_all_monsters('resume')
                         self.current_monster, self.selection_mode = None, None
                         self.indexes['general'] = 0
@@ -190,7 +204,7 @@ class Battle:
                         #print('catch')
                         self.selection_mode = 'target'
                         self.selection_side = 'opponent'
-
+                self.indexes = {k: 0 for k in self.indexes}
 
             if keys[pygame.K_ESCAPE]:
                 if self.selection_mode in ('attack', 'switch', 'target'):
@@ -221,11 +235,14 @@ class Battle:
             amount_damage *=0.5
 
         target_defense = 1 - target_sprite.monster.get_stat('defense') / 2000
+        if target_sprite.monster.defending:
+            target_defense -= 0.2
         target_defense = max(0, min(1,target_defense))
         
 
         #update the mosnter health
         target_sprite.monster.health -= amount_damage * target_defense
+        target_sprite.monster.stat_limiter()
         self.check_dealth()
 
         #resume the game
@@ -376,10 +393,12 @@ class Battle:
        
     def update(self, dt):
         #updated
+        self.check_end_battle()
         self.input()
         self.update_timers()
         self.battle_sprites.update(dt)
         self.check_active()
+        
 
 
         #drawing 

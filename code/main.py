@@ -36,9 +36,9 @@ class Game:
         }
 
         self.dummy_monster = {
-            0: Monster("Atrox", 10),
-            1: Monster("Sparchu", 10),
-            2: Monster("Gulfin", 3),
+            0: Monster("Atrox", 5),
+            1: Monster("Sparchu", 6),
+            2: Monster("Gulfin", 7),
             3: Monster("Jacana", 2),
             4: Monster("Pouch", 3)
         }
@@ -329,4 +329,4 @@ if __name__ == '__main__':
     game.run()
 
 
-#8:47:00
+#10:18:00
