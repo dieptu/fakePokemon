@@ -56,7 +56,7 @@ class Battle:
             pos = list(BATTLE_POSITIONS['right'].values())[pos_index]
             groups = (self.battle_sprites, self.opponent_sprites)
 
-        monster_sprite = MonsterSprite(pos, frames, groups, monster, index, pos_index, entity)
+        monster_sprite = MonsterSprite(pos, frames, groups, monster, index, pos_index, entity, self.apply_attack)
         MonsterOutlineSprite(monster_sprite, self.battle_sprites, outline_frames)
 
         #ui stat of each monster
@@ -171,10 +171,16 @@ class Battle:
 
                     # Select the monster sprite based on the target index
                     monster_sprite = sprites[self.indexes['target']]
-                    print(f"Selected monster: {monster_sprite.monster.name}, level: {monster_sprite.monster.level}")
+                    #print(f"Selected monster: {monster_sprite.monster.name}, level: {monster_sprite.monster.level}")
 
                     # Highlight the selected monster
                     monster_sprite.set_highlight(True)
+
+                    if self.selected_attack:
+                        self.current_monster.active_attack(monster_sprite, self.selected_attack)
+                        self.selected_attack, self.current_monster, self.selection_mode = None, None, None
+                    else:
+                        pass
 
                 elif self.selection_mode == 'attack':
                     self.selection_mode = 'target'
@@ -205,6 +211,38 @@ class Battle:
     def update_all_monsters(self, option):
         for monster_sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
             monster_sprite.monster.paused = True if option == 'pause' else False
+
+    def apply_attack(self,target_sprite, attack, amount_damage):
+        #play animation
+        AttackSprite(target_sprite.rect.center, self.monster_frames['attack'][ATTACK_DATA[attack]['animation']], self.battle_sprites )
+        #get correct attack damage amount
+        attack_element = ATTACK_DATA[attack]['element']
+        target_element = target_sprite.monster.element
+
+        #double attack
+        if attack_element == 'fire' and target_element == 'plant' or\
+            attack_element == 'water' and target_element == 'fire' or\
+            attack_element == 'plant' and target_element == 'water' :
+            amount_damage *=2
+        
+        #half attack
+        if attack_element == 'fire' and target_element == 'water' or\
+            attack_element == 'water' and target_element == 'plant' or\
+            attack_element == 'plant' and target_element == 'fire' :
+            amount_damage *=0.5
+
+        target_defense = 1 - target_sprite.monster.get_stat('defense') / 2000
+        target_defense = max(0, min(1,target_defense))
+        
+
+        #update the mosnter health
+        target_sprite.monster.health -= amount_damage * target_defense
+
+
+        #resume the game
+        self.update_all_monsters('resume')
+        
+        
 
     def draw_ui(self):
         if self.current_monster:

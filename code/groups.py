@@ -76,7 +76,7 @@ class BattleSprites(pygame.sprite.Group):
                 elif sprite.monster_sprite == monster_sprite and sprite.monster_sprite.entity == side and mode == 'target':
                     highlight = True
 
-                print(f"Highlight check: {sprite.monster_sprite.monster}, highlight={highlight}")
+                #print(f"Highlight check: {sprite.monster_sprite.monster}, highlight={highlight}")
                 if highlight:
                     self.display_surface.blit(sprite.image, sprite.rect)
 

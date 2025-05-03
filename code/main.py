@@ -83,6 +83,7 @@ class Game:
         MONSTER_PATH = os.path.join(BASE_DIR, '../graphics/monsters')
         UI_PATH = os.path.join(BASE_DIR, '../graphics/ui')
         BACKGROUND_PATH = os.path.join(BASE_DIR, '../graphics/backgrounds')
+        ATTACK_PATH = os.path.join(BASE_DIR, '../graphics/attacks')
 
         #join() parameter will create a path like ../data/maps/world.tmx
         # self.tmx_maps = {	
@@ -110,10 +111,11 @@ class Game:
         self.monster_frames = {
             'icons' : import_folder_dict(ICONS_PATH),
             'monsters': monster_importer(MONSTER_PATH), 
-            'ui': import_folder_dict(UI_PATH)
+            'ui': import_folder_dict(UI_PATH),
+            'attack': attack_importer(ATTACK_PATH)
         }
         self.monster_frames['outlines'] = outline_creator(self.monster_frames['monsters'], 5)
-        print('MONSTER_FRAMES - OUTLINES \n\n',self.monster_frames['outlines'])
+        #print('MONSTER_FRAMES - OUTLINES \n\n',self.monster_frames['outlines'])
         self.bg_frames = import_folder_dict(BACKGROUND_PATH)
         
 
