@@ -5,7 +5,7 @@ from game_data import ATTACK_DATA
 from random import choice
 
 class Battle:
-    def __init__(self, player_monsters, opponent_monsters, monster_frames, bg_surf, fonts, end_battle, character):
+    def __init__(self, player_monsters, opponent_monsters, monster_frames, bg_surf, fonts, end_battle, character, sound):
         #general
         self.display_surface = pygame.display.get_surface()
         self.bg_surf = bg_surf
@@ -40,7 +40,7 @@ class Battle:
             'target': 0,
         }
         self.battle_over = False
-        
+        self.sound = sound
 
         self.setup()
 
@@ -223,6 +223,7 @@ class Battle:
     def apply_attack(self,target_sprite, attack, amount_damage):
         #play animation
         AttackSprite(target_sprite.rect.center, self.monster_frames['attack'][ATTACK_DATA[attack]['animation']], self.battle_sprites )
+        self.sound[ATTACK_DATA[attack]['animation']].play()
         #get correct attack damage amount
         attack_element = ATTACK_DATA[attack]['element']
         target_element = target_sprite.monster.element
