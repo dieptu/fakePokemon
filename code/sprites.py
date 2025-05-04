@@ -14,8 +14,10 @@ class Sprite(pygame.sprite.Sprite):
         self.hitbox = self.rect.copy()
 
 class MonsterPatchSprite(Sprite):
-    def __init__(self, pos, surf, groups, biome):
+    def __init__(self, pos, surf, groups, biome, monster, level):
         self.biome = biome
+        self.monsters = monster.split(',')
+        self.level = level
         super().__init__(pos, surf, groups, WORLD_LAYERS['main' if biome != 'sand' else 'bg'])
         self.y_sort -= 40
 
