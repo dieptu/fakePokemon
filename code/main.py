@@ -256,6 +256,7 @@ class Game:
         #print('monster encounter')
         sprites = [sprite for sprite in self.monster_ingrass_sprites if sprite.rect.colliderect(self.player.hitbox)]
         if sprites and self.player.direction:
+            self.encounter_timer.duration = randint(800,2500)
             self.player.block()
             self.transition_target = Battle(
                 player_monsters = self.player_monster, 

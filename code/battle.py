@@ -56,6 +56,7 @@ class Battle:
         #print(self.monster_data['opponent'])
     
     def create_monster(self, monster, index, pos_index, entity):
+        monster.paused = False
         frames = self.monster_frames['monsters'][monster.name]
         outline_frames = self.monster_frames['outlines'][monster.name]
         #print(outline_frames)
