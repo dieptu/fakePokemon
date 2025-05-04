@@ -5,12 +5,14 @@ from game_data import ATTACK_DATA
 from random import choice
 
 class Battle:
-    def __init__(self, player_monsters, opponent_monsters, monster_frames, bg_surf, fonts):
+    def __init__(self, player_monsters, opponent_monsters, monster_frames, bg_surf, fonts, end_battle, character):
         #general
         self.display_surface = pygame.display.get_surface()
         self.bg_surf = bg_surf
         self.monster_frames = monster_frames
         self.fonts = fonts
+        self.end_battle = end_battle
+        self.character = character
         self.monster_data = {
             'player': player_monsters,
             'opponent': opponent_monsters
@@ -113,11 +115,13 @@ class Battle:
         if len(self.opponent_sprites) == 0 and not self.battle_over:
             self.battle_over = True
             print("battle won")
+            self.end_battle(self.character)
             for monster in self.monster_data['player'].values():
                 monster.initiative = 0
         #palyer defeated
         if len(self.player_sprites) == 0:
             print("game over")
+            
             pygame.quit()
             exit()
    

@@ -34,6 +34,9 @@ class Game:
             6: Monster("Jacana", 2),
             7: Monster("Pouch", 3)
         }
+        #test the healing of the nurse
+        # for monster in self.player_monster.values():
+        #     monster.health *= 0.5
 
         self.dummy_monster = {
             0: Monster("Atrox", 5),
@@ -65,8 +68,8 @@ class Game:
         self.dialog_tree = None
         self.monster_index = MonsterIndex(self.player_monster, self.fonts, self.monster_frames)
         self.index_open = False
-        self.battle = Battle(self.player_monster, self.dummy_monster, self.monster_frames, self.bg_frames['forest'], self.fonts)
-
+        #self.battle = Battle(self.player_monster, self.dummy_monster, self.monster_frames, self.bg_frames['forest'], self.fonts)
+        self.battle = None
 
     def import_asset(self):
         #access the map of the world for the game
@@ -169,7 +172,8 @@ class Game:
                     player = self.player,
                     create_dialog=self.create_dialog,
                     collision_sprites= self.collision_sprites,
-                    radius = obj.properties['radius']
+                    radius = obj.properties['radius'],
+                    nurse = obj.properties['character_id'] == 'Nurse'
                     )
 
         #Grass patches
@@ -216,7 +220,27 @@ class Game:
 
     def end_dialog(self, character):
         self.dialog_tree = None
-        self.player.unblock()
+        if character.nurse:
+            for monster in self.player_monster.values():
+                monster.health = monster.get_stat("max_health")
+                monster.energy = monster.get_stat("max_energy")
+            self.player.unblock()
+        elif not character.character_data['defeated']:
+			# self.audio['overworld'].stop()
+			# self.audio['battle'].play(-1)
+            self.transition_target = Battle(
+                player_monsters = self.player_monster, 
+                opponent_monsters = character.monsters, 
+                monster_frames = self.monster_frames, 
+                bg_surf = self.bg_frames[character.character_data['biome']], 
+                fonts = self.fonts, 
+                end_battle = self.end_battle,
+                character = character)
+                # ,  sounds = self.audio)
+            self.tint_mode = 'tint'
+
+        
+
 
     #transition system
     # def transition_check(self):
@@ -241,7 +265,12 @@ class Game:
         if self.tint_mode == 'tint':
             self.tint_progress += self.tint_speed * dt
             if self.tint_progress >= 255:
-                self.setup(self.tmx_maps[self.transition_target[0]], self.transition_target[1])
+                if type(self.transition_target) == Battle:
+                    self.battle = self.transition_target
+                elif self.transition_target == 'level':
+                    self.battle = None
+                else:
+                    self.setup(self.tmx_maps[self.transition_target[0]], self.transition_target[1])
                 self.tint_mode = 'untint'
                 self.transition_target = None
 
@@ -290,6 +319,15 @@ class Game:
     #         self.tint_surf.fill((0, 0, 0, int(self.tint_progress)))
     #         self.display_surface.blit(self.tint_surf, (0, 0))
 
+    def end_battle(self, character):
+		#self.audio['battle'].stop()
+        self.transition_target = 'level'
+        self.tint_mode = 'tint'
+        if character:
+            character.character_data['defeated'] = True
+            self.create_dialog(character)
+
+    
     def run(self):
         while True:
             #event loop
