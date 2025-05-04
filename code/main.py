@@ -16,6 +16,7 @@ from support import *
 from monster import Monster
 from monster_index import MonsterIndex
 from battle import Battle
+from evolution import Evolution
 
 class Game:
     #general
@@ -30,7 +31,7 @@ class Game:
         self.player_monster = {
             0: Monster("Charmadillo", 30),
             1: Monster("Friolera", 29),
-            2: Monster("Larvea", 3),
+            2: Monster("Larvea", 4),
             3: Monster("Atrox", 24),
             4: Monster("Sparchu", 24),
             5: Monster("Gulfin", 4),
@@ -41,13 +42,13 @@ class Game:
         # for monster in self.player_monster.values():
         #     monster.health *= 0.5
 
-        self.dummy_monster = {
-            0: Monster("Atrox", 5),
-            1: Monster("Sparchu", 6),
-            2: Monster("Gulfin", 7),
-            3: Monster("Jacana", 2),
-            4: Monster("Pouch", 3)
-        }
+        # self.dummy_monster = {
+        #     0: Monster("Atrox", 5),
+        #     1: Monster("Sparchu", 6),
+        #     2: Monster("Gulfin", 7),
+        #     3: Monster("Jacana", 2),
+        #     4: Monster("Pouch", 3)
+        # }
 
         #groups
         #self.all_sprites = pygame.sprite.Group()
@@ -74,6 +75,9 @@ class Game:
         self.index_open = False
         #self.battle = Battle(self.player_monster, self.dummy_monster, self.monster_frames, self.bg_frames['forest'], self.fonts)
         self.battle = None
+        self.evolution = None
+
+        self.check_evolution()
 
     def import_asset(self):
         #access the map of the world for the game
@@ -91,7 +95,7 @@ class Game:
         UI_PATH = os.path.join(BASE_DIR, '../graphics/ui')
         BACKGROUND_PATH = os.path.join(BASE_DIR, '../graphics/backgrounds')
         ATTACK_PATH = os.path.join(BASE_DIR, '../graphics/attacks')
-
+        ANIMATION_FRAME_PATH = os.path.join(BASE_DIR, "../graphics/other/star animation")
         #join() parameter will create a path like ../data/maps/world.tmx
         # self.tmx_maps = {	
         #     'world': pytmx.util_pygame.load_pygame(TMX_PATH_WORLD),  # Use absolute path
@@ -124,6 +128,7 @@ class Game:
         self.monster_frames['outlines'] = outline_creator(self.monster_frames['monsters'], 5)
         #print('MONSTER_FRAMES - OUTLINES \n\n',self.monster_frames['outlines'])
         self.bg_frames = import_folder_dict(BACKGROUND_PATH)
+        self.star_animation_frames = import_folder(ANIMATION_FRAME_PATH)
         
 
     def setup(self, tmx_map, player_start_pos):
@@ -269,6 +274,18 @@ class Game:
             )
             self.tint_mode = 'tint'
 
+    def check_evolution(self):
+        for index, monster in self.player_monster.items():
+            if monster.evolution:
+                if monster.level == monster.evolution[1]:
+                    self.player.block()
+                    self.evolution = Evolution(self.monster_frames['monsters'], monster.name, monster.evolution[0], self.fonts['bold'], self.end_evolution, self.star_animation_frames )
+
+
+    def end_evolution(self):
+        self.evolution = None
+        self.player.unblock()
+
     #transition system
     # def transition_check(self):
     #     sprites = [sprite for sprite in self.transition_sprites if sprite.rect.colliderect(self.player.hitbox)]
@@ -353,8 +370,9 @@ class Game:
         if character:
             character.character_data['defeated'] = True
             self.create_dialog(character)
-        else:
+        elif not self.evolution:
             self.player.unblock()
+            self.check_evolution()
 
     
     def run(self):
@@ -386,6 +404,7 @@ class Game:
             if self.dialog_tree : self.dialog_tree.update()
             if self.index_open  : self.monster_index.update(dt)
             if self.battle      : self.battle.update(dt)
+            if self.evolution   : self.evolution.update(dt)
             self.transition_check1()
             self.tint_screen1(dt)
 

@@ -15,15 +15,14 @@ class Monster:
         self.paused = False
         self.defending = False
 
-
         # self.health -= randint(0,200)
         # self.energy -= randint(0,100)
-
-
 
         #experience
         self.xp = 0
         self.level_up = self.level * 150
+        self.evolution = MONSTER_DATA[self.name]['evolve']
+        # print(self.evolution)
 
     def get_stat(self, stat):
         return self.base_stats[stat] * self.level
